@@ -1,0 +1,6 @@
+{
+  "name": "Plataforma de Análisis de Vulnerabilidad",
+  "description": "Herramienta técnica de análisis de vulnerabilidades en personas, recursos, sistemas y procesos. Incluye consolidación, matriz de amenazas, diamantes de riesgo dinámicos y reportes ejecutivos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
