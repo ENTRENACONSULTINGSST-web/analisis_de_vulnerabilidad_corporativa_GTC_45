@@ -102,7 +102,7 @@ Por favor escribe un reporte ejecutivo profesional y estructurado en Markdown qu
 - **Conclusión General**: Mensaje ejecutivo enfatizando que la gestión del riesgo de desastres es una inversión en la resiliencia y resguardo humano y operacional de las organizaciones.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
+        model: "gemini-2.0-flash",
         contents: promptString,
       });
 

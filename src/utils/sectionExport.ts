@@ -414,7 +414,142 @@ function parseOklchToRgb(oklchStr: string): string {
 }
 
 /**
- * Uses a mathematical converter to replace any CSS OKLCH color strings matching modern 
+ * Converts an individual oklab color string directly to a standard sRGB rgb() or rgba() color string.
+ */
+function parseOklabToRgb(oklabStr: string): string {
+  const match = /oklab\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))(?:\s*(\s*\/|\s*,)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(oklabStr);
+  const testMatch = /oklab\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(oklabStr);
+  if (!testMatch) return oklabStr;
+
+  const l = parseValueWithFallback(testMatch[1], 0.5);
+  const lab_a = parseValueWithFallback(testMatch[2], 0.0);
+  const lab_b = parseValueWithFallback(testMatch[3], 0.0);
+  const alpha = parseValueWithFallback(testMatch[4], 1);
+
+  // Oklab -> LMS color space
+  const l_lms = l + 0.3963377774 * lab_a + 0.2158017574 * lab_b;
+  const m_lms = l - 0.1055613458 * lab_a - 0.0638541728 * lab_b;
+  const s_lms = l - 0.0894841775 * lab_a - 1.2914855480 * lab_b;
+
+  // Convert to non-linear LMS
+  const l_non_lin = l_lms * l_lms * l_lms;
+  const m_non_lin = m_lms * m_lms * m_lms;
+  const s_non_lin = s_lms * s_lms * s_lms;
+
+  // LMS -> Linear sRGB
+  const r_lin = 4.0767416621 * l_non_lin - 3.3077115913 * m_non_lin + 0.2309699292 * s_non_lin;
+  const g_lin = -1.2684380046 * l_non_lin + 2.6097574011 * m_non_lin - 0.3413193965 * s_non_lin;
+  const b_lin = -0.0041960863 * l_non_lin - 0.7034186147 * m_non_lin + 1.7076170114 * s_non_lin;
+
+  // Gamma correction function to transform linear sRGB to sRGB
+  const gammaCorr = (val: number) => {
+    if (val <= 0.0031308) {
+      return 12.92 * val;
+    }
+    return 1.055 * Math.pow(val, 1 / 2.4) - 0.055;
+  };
+
+  const rgb_r = Math.round(Math.max(0, Math.min(1, gammaCorr(r_lin))) * 255);
+  const rgb_g = Math.round(Math.max(0, Math.min(1, gammaCorr(g_lin))) * 255);
+  const rgb_b = Math.round(Math.max(0, Math.min(1, gammaCorr(b_lin))) * 255);
+
+  if (alpha === 1) {
+    return `rgb(${rgb_r}, ${rgb_g}, ${rgb_b})`;
+  } else {
+    return `rgba(${rgb_r}, ${rgb_g}, ${rgb_b}, ${alpha.toFixed(3)})`;
+  }
+}
+
+/**
+ * Converts standard CIE lab() to sRGB rgb() or rgba() color string.
+ */
+function parseLabToRgb(labStr: string): string {
+  const match = /lab\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(labStr);
+  if (!match) return labStr;
+
+  let l = parseValueWithFallback(match[1], 50);
+  if (match[1]?.endsWith('%')) {
+    l = parseFloat(match[1]);
+  }
+  const a = parseValueWithFallback(match[2], 0);
+  const b = parseValueWithFallback(match[3], 0);
+  const alpha = parseValueWithFallback(match[4], 1);
+
+  // lab to xyz (CIE D65 white point: X=0.95047, Y=1.00000, Z=1.08883)
+  let y = (l + 16) / 116;
+  let x = a / 500 + y;
+  let z = y - b / 200;
+
+  const finv = (t: number) => {
+    return t > 6/29 ? t * t * t : (t - 16/116) * 3 * (6/29) * (6/29);
+  };
+
+  x = 0.95047 * finv(x);
+  y = 1.00000 * finv(y);
+  z = 1.08883 * finv(z);
+
+  // xyz to linear srgb
+  let r_lin = x * 3.2406 + y * -1.5372 + z * -0.4986;
+  let g_lin = x * -0.9689 + y * 1.8758 + z * 0.0415;
+  let b_lin = x * 0.0557 + y * -0.2040 + z * 1.0570;
+
+  const gammaCorr = (val: number) => {
+    if (val <= 0.0031308) {
+      return 12.92 * val;
+    }
+    return 1.055 * Math.pow(val, 1 / 2.4) - 0.055;
+  };
+
+  const rgb_r = Math.round(Math.max(0, Math.min(1, gammaCorr(r_lin))) * 255);
+  const rgb_g = Math.round(Math.max(0, Math.min(1, gammaCorr(g_lin))) * 255);
+  const rgb_b = Math.round(Math.max(0, Math.min(1, gammaCorr(b_lin))) * 255);
+
+  if (alpha === 1) {
+    return `rgb(${rgb_r}, ${rgb_g}, ${rgb_b})`;
+  } else {
+    return `rgba(${rgb_r}, ${rgb_g}, ${rgb_b}, ${alpha.toFixed(3)})`;
+  }
+}
+
+/**
+ * Converts standard CIE lch() to sRGB rgb() or rgba() color string.
+ */
+function parseLchToRgb(lchStr: string): string {
+  const match = /lch\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+(?:deg|rad|grad|turn)?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(lchStr);
+  if (!match) return lchStr;
+
+  const l = parseValueWithFallback(match[1], 50);
+  const c = parseValueWithFallback(match[2], 0);
+  const hStr = match[3] || '0';
+  let h = 0;
+
+  if (hStr.includes('var(')) {
+    h = parseValueWithFallback(hStr, 0);
+  } else if (hStr.endsWith('deg')) {
+    h = parseFloat(hStr);
+  } else if (hStr.endsWith('rad')) {
+    h = parseFloat(hStr) * (180 / Math.PI);
+  } else if (hStr.endsWith('grad')) {
+    h = parseFloat(hStr) * 0.9;
+  } else if (hStr.endsWith('turn')) {
+    h = parseFloat(hStr) * 360;
+  } else {
+    h = parseFloat(hStr);
+  }
+  if (isNaN(h)) h = 0;
+
+  const alpha = parseValueWithFallback(match[4], 1);
+
+  const hRad = h * (Math.PI / 180);
+  const a = c * Math.cos(hRad);
+  const b = c * Math.sin(hRad);
+
+  const labString = `lab(${l} ${a} ${b} / ${alpha})`;
+  return parseLabToRgb(labString);
+}
+
+/**
+ * Uses a mathematical converter to replace any CSS OKLCH, OKLAB, LAB, or LCH color strings matching modern 
  * color space functions to their equivalent safe sRGB representation.
  * Intercepting and translating them to rgb(...) or rgba(...) ensures 100% bug-free rendering in html2canvas.
  */
@@ -422,20 +557,65 @@ function convertCssColorToRgb(colorStr: string): string {
   if (!colorStr || typeof colorStr !== 'string') return colorStr;
   
   // Return early if no modern colors are present
-  if (!/oklch/i.test(colorStr)) {
+  if (!/(oklch|oklab|lab|lch)/i.test(colorStr)) {
     return colorStr;
   }
 
-  // Replace each pattern match with computed rgb/rgba values using the mathematical converter
-  const oklchRegex = /oklch\(\s*[^)]+\)/gi;
-  return colorStr.replace(oklchRegex, (match) => {
-    try {
-      return parseOklchToRgb(match);
-    } catch (e) {
-      console.warn('Falla al convertir color individual:', match, e);
-      return 'rgb(255, 255, 255)';
-    }
-  });
+  let result = colorStr;
+
+  // 1. Replace oklch
+  if (/oklch/i.test(result)) {
+    const oklchRegex = /oklch\(\s*[^)]+\)/gi;
+    result = result.replace(oklchRegex, (match) => {
+      try {
+        return parseOklchToRgb(match);
+      } catch (e) {
+        console.warn('Falla al convertir oklch individual:', match, e);
+        return 'rgb(255, 255, 255)';
+      }
+    });
+  }
+
+  // 2. Replace oklab
+  if (/oklab/i.test(result)) {
+    const oklabRegex = /oklab\(\s*[^)]+\)/gi;
+    result = result.replace(oklabRegex, (match) => {
+      try {
+        return parseOklabToRgb(match);
+      } catch (e) {
+        console.warn('Falla al convertir oklab individual:', match, e);
+        return 'rgb(255, 255, 255)';
+      }
+    });
+  }
+
+  // 3. Replace lch
+  if (/lch/i.test(result)) {
+    const lchRegex = /lch\(\s*[^)]+\)/gi;
+    result = result.replace(lchRegex, (match) => {
+      try {
+        return parseLchToRgb(match);
+      } catch (e) {
+        console.warn('Falla al convertir lch individual:', match, e);
+        return 'rgb(255, 255, 255)';
+      }
+    });
+  }
+
+  // 4. Replace lab
+  if (/lab/i.test(result)) {
+    const labRegex = /lab\(\s*[^)]+\)/gi;
+    result = result.replace(labRegex, (match) => {
+      try {
+        return parseLabToRgb(match);
+      } catch (e) {
+        console.warn('Falla al convertir lab individual:', match, e);
+        return 'rgb(255, 255, 255)';
+      }
+    });
+  }
+
+  return result;
 }
 
 /**
