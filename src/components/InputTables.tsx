@@ -94,9 +94,12 @@ export const InputTables: React.FC<InputTablesProps> = ({
                 const sectionAvg = sec.questions.length > 0 ? totalScore / sec.questions.length : 0;
 
                 return (
-                  <div key={sec.id} className="border border-slate-100 rounded-lg overflow-hidden" id={`sec-table-${sec.id}`}>
+                  <div key={sec.id} className="border border-slate-100 rounded-lg overflow-hidden bg-white" id={`${sec.id}-section`}>
                     <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <span className="font-bold text-sm text-slate-700 tracking-tight uppercase">{sec.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-700 tracking-tight uppercase">{sec.name}</span>
+                        <ExportDropdown elementId={`${sec.id}-section`} />
+                      </div>
                       <div className="flex items-center gap-2 text-xs">
                         <span className="text-slate-500 font-medium">Promedio Seccional:</span>
                         <span className="px-2 py-1 bg-slate-800 text-white font-bold rounded-md">
