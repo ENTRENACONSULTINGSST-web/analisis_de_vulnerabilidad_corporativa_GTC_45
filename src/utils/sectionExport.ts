@@ -350,7 +350,7 @@ function parseValueWithFallback(str: string | undefined, defaultValue: number): 
 function parseOklchToRgb(oklchStr: string): string {
   // Regex matches oklch(L C H) or oklch(L C H / A) supporting optional commas/slashes and custom variables
   const match = /oklch\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+(?:deg|rad|grad|turn)?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(oklchStr);
-  if (!match) return oklchStr;
+  if (!match) return 'rgb(255, 255, 255)';
 
   const l = parseValueWithFallback(match[1], 0.5);
   const c = parseValueWithFallback(match[2], 0.1);
@@ -419,12 +419,13 @@ function parseOklchToRgb(oklchStr: string): string {
 function parseOklabToRgb(oklabStr: string): string {
   const match = /oklab\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))(?:\s*(\s*\/|\s*,)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(oklabStr);
   const testMatch = /oklab\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(oklabStr);
-  if (!testMatch) return oklabStr;
+  const activeMatch = testMatch || match;
+  if (!activeMatch) return 'rgb(255, 255, 255)';
 
-  const l = parseValueWithFallback(testMatch[1], 0.5);
-  const lab_a = parseValueWithFallback(testMatch[2], 0.0);
-  const lab_b = parseValueWithFallback(testMatch[3], 0.0);
-  const alpha = parseValueWithFallback(testMatch[4], 1);
+  const l = parseValueWithFallback(activeMatch[1], 0.5);
+  const lab_a = parseValueWithFallback(activeMatch[2], 0.0);
+  const lab_b = parseValueWithFallback(activeMatch[3], 0.0);
+  const alpha = parseValueWithFallback(activeMatch[4], 1);
 
   // Oklab -> LMS color space
   const l_lms = l + 0.3963377774 * lab_a + 0.2158017574 * lab_b;
@@ -465,7 +466,7 @@ function parseOklabToRgb(oklabStr: string): string {
  */
 function parseLabToRgb(labStr: string): string {
   const match = /lab\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(labStr);
-  if (!match) return labStr;
+  if (!match) return 'rgb(255, 255, 255)';
 
   let l = parseValueWithFallback(match[1], 50);
   if (match[1]?.endsWith('%')) {
@@ -516,7 +517,7 @@ function parseLabToRgb(labStr: string): string {
  */
 function parseLchToRgb(lchStr: string): string {
   const match = /lch\(\s*([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+%?|var\([^)]+\))\s+(?:[\s,]*)([0-9.-]+(?:deg|rad|grad|turn)?|var\([^)]+\))(?:\s*(?:\/|[\s,]+)\s*([0-9.-]+%?|var\([^)]+\)))?\s*\)/i.exec(lchStr);
-  if (!match) return lchStr;
+  if (!match) return 'rgb(255, 255, 255)';
 
   const l = parseValueWithFallback(match[1], 50);
   const c = parseValueWithFallback(match[2], 0);
@@ -561,60 +562,61 @@ function convertCssColorToRgb(colorStr: string): string {
     return colorStr;
   }
 
-  let result = colorStr;
+  let result = '';
+  let i = 0;
+  const len = colorStr.length;
+  const regex = /(oklch|oklab|lab|lch)\(/gi;
+  let match;
 
-  // 1. Replace oklch
-  if (/oklch/i.test(result)) {
-    const oklchRegex = /oklch\(\s*[^)]+\)/gi;
-    result = result.replace(oklchRegex, (match) => {
-      try {
-        return parseOklchToRgb(match);
-      } catch (e) {
-        console.warn('Falla al convertir oklch individual:', match, e);
-        return 'rgb(255, 255, 255)';
+  while ((match = regex.exec(colorStr)) !== null) {
+    const startIndex = match.index;
+    const name = match[1].toLowerCase();
+    
+    // Append content leading up to this matched function
+    result += colorStr.substring(i, startIndex);
+    
+    let openParens = 1;
+    let j = regex.lastIndex; // Position after the matched '('
+    
+    // Balanced parenthesis matching
+    while (j < len && openParens > 0) {
+      if (colorStr[j] === '(') {
+        openParens++;
+      } else if (colorStr[j] === ')') {
+        openParens--;
       }
-    });
+      j++;
+    }
+
+    if (openParens === 0) {
+      // Sliced the entire group: oklab(...) or similar
+      const fullColorExpr = colorStr.substring(startIndex, j);
+      let converted = 'rgb(255, 255, 255)';
+      try {
+        if (name === 'oklch') {
+          converted = parseOklchToRgb(fullColorExpr);
+        } else if (name === 'oklab') {
+          converted = parseOklabToRgb(fullColorExpr);
+        } else if (name === 'lab') {
+          converted = parseLabToRgb(fullColorExpr);
+        } else if (name === 'lch') {
+          converted = parseLchToRgb(fullColorExpr);
+        }
+      } catch (err) {
+        console.warn(`Falla al convertir ${name} individual:`, fullColorExpr, err);
+      }
+      
+      result += converted;
+      i = j;
+      regex.lastIndex = j;
+    } else {
+      // If parentheses did not close properly, fallback to original signature slice
+      result += colorStr.substring(startIndex, regex.lastIndex);
+      i = regex.lastIndex;
+    }
   }
 
-  // 2. Replace oklab
-  if (/oklab/i.test(result)) {
-    const oklabRegex = /oklab\(\s*[^)]+\)/gi;
-    result = result.replace(oklabRegex, (match) => {
-      try {
-        return parseOklabToRgb(match);
-      } catch (e) {
-        console.warn('Falla al convertir oklab individual:', match, e);
-        return 'rgb(255, 255, 255)';
-      }
-    });
-  }
-
-  // 3. Replace lch
-  if (/lch/i.test(result)) {
-    const lchRegex = /lch\(\s*[^)]+\)/gi;
-    result = result.replace(lchRegex, (match) => {
-      try {
-        return parseLchToRgb(match);
-      } catch (e) {
-        console.warn('Falla al convertir lch individual:', match, e);
-        return 'rgb(255, 255, 255)';
-      }
-    });
-  }
-
-  // 4. Replace lab
-  if (/lab/i.test(result)) {
-    const labRegex = /lab\(\s*[^)]+\)/gi;
-    result = result.replace(labRegex, (match) => {
-      try {
-        return parseLabToRgb(match);
-      } catch (e) {
-        console.warn('Falla al convertir lab individual:', match, e);
-        return 'rgb(255, 255, 255)';
-      }
-    });
-  }
-
+  result += colorStr.substring(i);
   return result;
 }
 
@@ -683,7 +685,7 @@ async function runOklchSafeAsync<T>(fn: () => Promise<T>): Promise<T> {
  */
 function getHtml2CanvasConfig(normalizedBgColor: string) {
   return {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     allowTaint: false, // Must be false to enable canvas toBlob/toDataURL
     backgroundColor: normalizedBgColor,
