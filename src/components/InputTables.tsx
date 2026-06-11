@@ -8,6 +8,7 @@ import { VulnerabilityCategory } from '../types';
 import { HelpCircle, FileText, CheckCircle2 } from 'lucide-react';
 import { downloadVulnerabilitiesCSV, getVulnerabilitiesMarkdown, copyTextToClipboard } from '../utils/sectionExport';
 import { ExportDropdown } from './ExportDropdown';
+import { AutoResizeTextarea } from './AutoResizeTextarea';
 
 interface InputTablesProps {
   categories: VulnerabilityCategory[];
@@ -157,12 +158,11 @@ export const InputTables: React.FC<InputTablesProps> = ({
                                 </td>
 
                                 <td className="py-3.5 px-4">
-                                  <textarea
+                                  <AutoResizeTextarea
                                     value={q.observation}
                                     onChange={(e) => onChangeObservation(cat.id, sec.id, q.id, e.target.value)}
                                     placeholder="Ingrese observaciones sobre el estado..."
-                                    className="w-full text-xs px-2.5 py-1.5 rounded-md border border-slate-200 focus:border-slate-400 focus:outline-none transition-all placeholder-slate-400 max-h-[80px]"
-                                    rows={1}
+                                    className="text-xs px-2.5 py-1.5 rounded-md border border-slate-200 focus:border-slate-400 focus:outline-none placeholder-slate-400 bg-white"
                                     id={`obs-${q.id}`}
                                   />
                                 </td>

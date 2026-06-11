@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { ThreatItem } from '../types';
 import { Plus, Trash2, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
 import { ExportDropdown } from './ExportDropdown';
+import { AutoResizeTextarea } from './AutoResizeTextarea';
 
 interface ThreatsTableProps {
   threats: ThreatItem[];
@@ -158,11 +159,11 @@ export const ThreatsTable: React.FC<ThreatsTableProps> = ({
 
                       {/* Source Description */}
                       <td className="px-4 py-3">
-                        <textarea
+                        <AutoResizeTextarea
                           value={threat.source}
                           onChange={(e) => onChangeThreat(threat.id, 'source', e.target.value)}
                           placeholder="Describa brevemente la procedencia del riesgo..."
-                          className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded focus:border-slate-400 focus:outline-none transition-all resize-y min-h-[50px] leading-relaxed bg-slate-50/20"
+                          className="text-xs px-2.5 py-1.5 border border-slate-200 rounded focus:border-slate-400 focus:outline-none placeholder-slate-400 bg-white"
                           id={`src-text-${threat.id}`}
                         />
                       </td>

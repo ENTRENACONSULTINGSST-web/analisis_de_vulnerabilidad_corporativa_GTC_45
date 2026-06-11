@@ -766,6 +766,35 @@ function getHtml2CanvasConfig(normalizedBgColor: string) {
       } catch (err) {
         console.warn('Error al normalizar estilos de nodos individuales en el clon:', err);
       }
+
+      // 3. Translate all textareas into custom wrapping divs to bypass html2canvas scroll/cut-off bugs
+      try {
+        clonedDoc.querySelectorAll('textarea').forEach((node) => {
+          const textarea = node as HTMLTextAreaElement;
+          const parent = textarea.parentNode;
+          if (parent) {
+            const div = clonedDoc.createElement('div');
+            div.textContent = textarea.value || '';
+            
+            // Transfer classes and styles to match presentation
+            div.className = textarea.className;
+            div.setAttribute('style', textarea.getAttribute('style') || '');
+            
+            // Force wrapping, full height, and clean display
+            div.style.whiteSpace = 'pre-wrap';
+            div.style.wordBreak = 'break-word';
+            div.style.height = 'auto';
+            div.style.minHeight = '32px';
+            div.style.display = 'block';
+            div.style.overflow = 'visible';
+            
+            // Swap nodes
+            parent.replaceChild(div, textarea);
+          }
+        });
+      } catch (err) {
+        console.warn('Error translating textareas to divs in html2canvas clone:', err);
+      }
     }
   };
 }
