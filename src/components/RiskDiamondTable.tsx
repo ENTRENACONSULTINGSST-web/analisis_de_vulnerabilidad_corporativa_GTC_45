@@ -77,7 +77,7 @@ export const RiskDiamondTable: React.FC<RiskDiamondTableProps> = ({
   const getDiagValues = () => {
     if (!activeThreat) {
       return {
-        aVal: 'P-P',
+        aVal: 'A-B',
         aCol: 'G',
         aColorName: 'green' as const,
         pVal: 'P-B',
@@ -97,8 +97,8 @@ export const RiskDiamondTable: React.FC<RiskDiamondTableProps> = ({
 
     const details = getRiskDetails(activeThreat);
 
-    // Threat qualification -> A-P (Possible/Probable) or A-I (Inminente)
-    const aVal = `A-${activeThreat.qualification === 'INMINENTE' ? 'I' : 'P'}`;
+    // Threat qualification -> A-B (Bajo), A-M (Medio), A-A (Alto)
+    const aVal = `A-${activeThreat.qualification === 'ALTO' ? 'A' : activeThreat.qualification === 'MEDIO' ? 'M' : 'B'}`;
     const aCol = details.amenazaColor === 'green' ? 'G' : details.amenazaColor === 'yellow' ? 'Y' : 'R';
     const aColorName = details.amenazaColor;
 

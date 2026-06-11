@@ -795,6 +795,52 @@ function getHtml2CanvasConfig(normalizedBgColor: string) {
       } catch (err) {
         console.warn('Error translating textareas to divs in html2canvas clone:', err);
       }
+
+      // 4. Convert all SVGs in the cloned document into inline images with serialized Data URLs.
+      // This completely works around severity html2canvas bugs where vector layouts, nested polygons,
+      // and text points are rendered mirrored, off-center, or inverted, by letting the browser's
+      // native rendering engine generate a perfect flat image representation in the clone.
+      try {
+        clonedDoc.querySelectorAll('svg').forEach((svg) => {
+          try {
+            const width = svg.getAttribute('width') || String(svg.clientWidth || 240);
+            const height = svg.getAttribute('height') || String(svg.clientHeight || 250);
+            
+            const serializer = new XMLSerializer();
+            let svgStr = serializer.serializeToString(svg);
+            
+            // Ensure namespace is present
+            if (!svgStr.includes('xmlns=')) {
+              svgStr = svgStr.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            
+            const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+            const img = clonedDoc.createElement('img');
+            img.src = dataUrl;
+            img.setAttribute('referrerpolicy', 'no-referrer');
+            
+            // Match dimensions and layouts
+            img.style.width = width.includes('%') ? width : `${width}px`;
+            img.style.height = height.includes('%') ? height : `${height}px`;
+            img.style.display = 'block';
+            img.style.margin = '0 auto';
+            img.style.border = 'none';
+            
+            const originalClass = svg.className?.baseVal || svg.getAttribute('class') || '';
+            if (originalClass) {
+              img.className = originalClass;
+            }
+            
+            if (svg.parentNode) {
+              svg.parentNode.replaceChild(img, svg);
+            }
+          } catch (e) {
+            console.warn('Error converting individual SVG to Image in clone:', e);
+          }
+        });
+      } catch (err) {
+        console.warn('General error converting SVGs to inline images in clone:', err);
+      }
     }
   };
 }

@@ -41,7 +41,7 @@ function generateClientReport(
   const sScore = summary.sistemas.score;
   const sInterp = summary.sistemas.interpretation;
 
-  const filteredThreats = activeThreats.filter((t: any) => t.qualification !== 'POSIBLE');
+  const filteredThreats = activeThreats.filter((t: any) => t.qualification !== 'BAJO');
 
   return `### Informe Técnico de Análisis de Riesgos y Vulnerabilidades (Metodología Diamante de Riesgo GTC-45)
 
@@ -62,10 +62,10 @@ function generateClientReport(
 
 #### 2. Evaluación de Amenazas Críticas
 
-Se han mapeado las siguientes fuentes de riesgo calificadas como Probables o Inminentes con prioridad de atención en el Plan de Emergencias:
+Se han mapeado las siguientes fuentes de riesgo calificadas como Medias o Altas con prioridad de atención en el Plan de Emergencias:
 ${filteredThreats.length > 0
   ? filteredThreats.map((t: any) => `*   **${t.name}** (${t.category}): Calificación **${t.qualification}**. Fuente: *${t.source || 'Registro interno'}*`).join('\n')
-  : '*   *No se registraron amenazas calificadas como Probables o Inminentes en la matriz de análisis actual.*'
+  : '*   *No se registraron amenazas calificadas como Medias o Altas en la matriz de análisis actual.*'
 }
 
 ---
