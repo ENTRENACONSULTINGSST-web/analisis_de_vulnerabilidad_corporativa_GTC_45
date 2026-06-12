@@ -37,7 +37,15 @@ export default function App() {
     try {
       const stored = localStorage.getItem('vulnerability_threats_data');
       if (stored) {
-        return JSON.parse(stored);
+        const parsed: ThreatItem[] = JSON.parse(stored);
+        return parsed.map(t => {
+          let qual = t.qualification;
+          const qUpper = String(qual).toUpperCase();
+          if (qUpper === 'BAJO') qual = 'POSIBLE';
+          else if (qUpper === 'MEDIO' || qUpper === 'PROBABLE') qual = 'PROBABLE';
+          else if (qUpper === 'ALTO' || qUpper === 'INMINENTE') qual = 'INMINENTE';
+          return { ...t, qualification: qual };
+        });
       }
     } catch (e) {
       console.error("Local storage threats loading error:", e);

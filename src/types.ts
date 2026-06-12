@@ -38,7 +38,7 @@ export interface ThreatItem {
     interno: boolean;
   };
   source: string;
-  qualification: 'BAJO' | 'MEDIO' | 'ALTO';
+  qualification: 'POSIBLE' | 'PROBABLE' | 'INMINENTE';
   observation: string;
 }
 
@@ -425,7 +425,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'NATURAL',
     origin: { externo: true, interno: false },
     source: 'Situaciones de sismo presentadas en la ciudad.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -434,7 +434,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'NATURAL',
     origin: { externo: true, interno: false },
     source: 'Inundaciones presentadas con anterioridad en la Bodega.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -443,7 +443,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'TECNOLÓGICO',
     origin: { externo: true, interno: true },
     source: 'Por almacenamiento de mercancía con batería de litio UN3481. Corto circuito en red eléctrica, equipos de cómputo, electrodomésticos, mobiliario, almacenamiento de papelería incendios en locales vecinos.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -452,7 +452,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'TECNOLÓGICO',
     origin: { externo: true, interno: true },
     source: 'Almacenamiento de mercancía con batería de litio UN3481.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -461,7 +461,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'TECNOLÓGICO',
     origin: { externo: false, interno: true },
     source: 'Debilitamiento de estructura física en la oficina, caída de techos. Daño de las estanterías industriales pesadas, con pasillos peatonales de 4 niveles.',
-    qualification: 'BAJO',
+    qualification: 'POSIBLE',
     observation: ''
   },
   {
@@ -470,7 +470,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'TECNOLÓGICO',
     origin: { externo: true, interno: true },
     source: 'Corte en el suministro de energía por reparación o daños.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -479,7 +479,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'TECNOLÓGICO',
     origin: { externo: true, interno: true },
     source: 'Ingresan vehículos para cargue y descargue de mercancía.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -488,7 +488,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'TECNOLÓGICO',
     origin: { externo: false, interno: true },
     source: 'No se desarrollan trabajos de alto riesgo en alturas, sí se almacena mercancía en estanterías industriales de cuatro niveles sin ayuda de elevadores o montacargas.',
-    qualification: 'MEDIO',
+    qualification: 'PROBABLE',
     observation: ''
   },
   {
@@ -497,7 +497,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'SOCIAL',
     origin: { externo: true, interno: false },
     source: 'Situación socio política del país.',
-    qualification: 'BAJO',
+    qualification: 'POSIBLE',
     observation: ''
   },
   {
@@ -506,7 +506,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'SOCIAL',
     origin: { externo: true, interno: false },
     source: 'Situación socio política del país.',
-    qualification: 'BAJO',
+    qualification: 'POSIBLE',
     observation: ''
   },
   {
@@ -515,7 +515,7 @@ export const DEFAULT_THREATS_DATA: ThreatItem[] = [
     category: 'SOCIAL',
     origin: { externo: true, interno: true },
     source: 'Situación socio política del país.',
-    qualification: 'BAJO',
+    qualification: 'POSIBLE',
     observation: ''
   }
 ];
@@ -526,10 +526,9 @@ export function getScoreInterpretationColor(score: number): 'green' | 'yellow' |
   return 'red';
 }
 
-export function getThreatColor(qualification: 'BAJO' | 'MEDIO' | 'ALTO'): 'green' | 'yellow' | 'red' {
-  switch (qualification) {
-    case 'BAJO': return 'green';
-    case 'MEDIO': return 'yellow';
-    case 'ALTO': return 'red';
-  }
+export function getThreatColor(qualification: 'POSIBLE' | 'PROBABLE' | 'INMINENTE' | 'BAJO' | 'MEDIO' | 'ALTO' | string): 'green' | 'yellow' | 'red' {
+  const check = String(qualification).toUpperCase();
+  if (check === 'POSIBLE' || check === 'BAJO') return 'green';
+  if (check === 'PROBABLE' || check === 'MEDIO') return 'yellow';
+  return 'red'; // INMINENTE or ALTO
 }

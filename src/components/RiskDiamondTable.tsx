@@ -97,8 +97,9 @@ export const RiskDiamondTable: React.FC<RiskDiamondTableProps> = ({
 
     const details = getRiskDetails(activeThreat);
 
-    // Threat qualification -> A-B (Bajo), A-M (Medio), A-A (Alto)
-    const aVal = `A-${activeThreat.qualification === 'ALTO' ? 'A' : activeThreat.qualification === 'MEDIO' ? 'M' : 'B'}`;
+    // Threat qualification -> A-P (Possible/Probable) or A-I (Inminente/Alto)
+    const qStr = String(activeThreat.qualification).toUpperCase();
+    const aVal = `A-${(qStr === 'INMINENTE' || qStr === 'ALTO') ? 'I' : 'P'}`;
     const aCol = details.amenazaColor === 'green' ? 'G' : details.amenazaColor === 'yellow' ? 'Y' : 'R';
     const aColorName = details.amenazaColor;
 
@@ -200,7 +201,7 @@ export const RiskDiamondTable: React.FC<RiskDiamondTableProps> = ({
                 row.amenazaColor === 'green' ? 'bg-emerald-500 border-emerald-600' :
                 row.amenazaColor === 'yellow' ? 'bg-amber-500 border-amber-600' : 'bg-red-500 border-red-600'
               }`} />
-              <span className="text-[8px] text-slate-400 font-extrabold uppercase leading-none mt-1">{row.amenazaColor}</span>
+              <span className="text-[8px] text-slate-400 font-extrabold uppercase leading-none mt-1">{threat.qualification}</span>
             </div>
           </td>
 
@@ -578,8 +579,8 @@ export const RiskDiamondTable: React.FC<RiskDiamondTableProps> = ({
               </div>
 
               {/* The main dynamic high-resolution vector diamond */}
-              <div className="flex justify-center items-center w-full max-w-[210px] pt-4 select-none">
-                <svg width="100%" height="100%" viewBox="0 0 240 250" className="drop-shadow-[0_4px_16px_rgba(0,0,0,0.55)]">
+              <div className="flex justify-center items-center w-[220px] h-[230px] pt-2 select-none">
+                <svg width="220" height="230" viewBox="0 0 240 250" className="drop-shadow-[0_4px_16px_rgba(0,0,0,0.55)]">
                   <defs>
                     <linearGradient id="grad-green" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor="#34D399" />

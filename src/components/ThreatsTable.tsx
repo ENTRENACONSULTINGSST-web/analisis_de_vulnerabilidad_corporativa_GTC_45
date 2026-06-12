@@ -31,7 +31,7 @@ export const ThreatsTable: React.FC<ThreatsTableProps> = ({
   const [newThreatSource, setNewThreatSource] = useState('');
   const [newThreatExterno, setNewThreatExterno] = useState(true);
   const [newThreatInterno, setNewThreatInterno] = useState(false);
-  const [newThreatQual, setNewThreatQual] = useState<'BAJO' | 'MEDIO' | 'ALTO'>('MEDIO');
+  const [newThreatQual, setNewThreatQual] = useState<'POSIBLE' | 'PROBABLE' | 'INMINENTE'>('PROBABLE');
 
   const handleAddNewThreat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +50,7 @@ export const ThreatsTable: React.FC<ThreatsTableProps> = ({
     setNewThreatSource('');
     setNewThreatExterno(true);
     setNewThreatInterno(false);
-    setNewThreatQual('MEDIO');
+    setNewThreatQual('PROBABLE');
     
     // Auto-collapse after submission
     setShowAddForm(false);
@@ -175,23 +175,23 @@ export const ThreatsTable: React.FC<ThreatsTableProps> = ({
                             value={threat.qualification}
                             onChange={(e) => onChangeThreat(threat.id, 'qualification', e.target.value)}
                             className={`text-[10px] font-bold py-1 px-1.5 rounded border focus:outline-none transition-all text-center max-w-[110px] w-full cursor-pointer ${
-                              threat.qualification === 'BAJO'
+                              threat.qualification === 'POSIBLE' || threat.qualification === 'BAJO'
                                 ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                : threat.qualification === 'MEDIO'
+                                : threat.qualification === 'PROBABLE' || threat.qualification === 'MEDIO'
                                   ? 'bg-amber-50 border-amber-200 text-amber-700'
                                   : 'bg-red-50 border-red-200 text-red-700'
                             }`}
                             id={`sel-qual-${threat.id}`}
                           >
-                            <option value="BAJO">BAJO</option>
-                            <option value="MEDIO">MEDIO</option>
-                            <option value="ALTO">ALTO</option>
+                            <option value="POSIBLE">POSIBLE</option>
+                            <option value="PROBABLE">PROBABLE</option>
+                            <option value="INMINENTE">INMINENTE</option>
                           </select>
 
                           <div className="flex items-center gap-1 mt-1">
                             <span className={`w-2.5 h-2.5 rotate-45 border ${
-                              threat.qualification === 'BAJO' ? 'bg-emerald-500 border-emerald-600' :
-                              threat.qualification === 'MEDIO' ? 'bg-amber-500 border-amber-600' : 'bg-red-500 border-red-600'
+                              threat.qualification === 'POSIBLE' || threat.qualification === 'BAJO' ? 'bg-emerald-500 border-emerald-600' :
+                              threat.qualification === 'PROBABLE' || threat.qualification === 'MEDIO' ? 'bg-amber-500 border-amber-600' : 'bg-red-500 border-red-600'
                             }`} />
                             <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">{threat.qualification}</span>
                           </div>
@@ -243,15 +243,15 @@ export const ThreatsTable: React.FC<ThreatsTableProps> = ({
           <div className="flex gap-3">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 bg-emerald-500 rotate-45 border border-emerald-600" />
-              <span className="text-emerald-700">BAJO</span>
+              <span className="text-emerald-700">POSIBLE (Verde)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 bg-amber-500 rotate-45 border border-amber-600" />
-              <span className="text-amber-700">MEDIO</span>
+              <span className="text-amber-700">PROBABLE (Amarillo)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 bg-red-500 rotate-45 border border-red-600" />
-              <span className="text-red-700">ALTO</span>
+              <span className="text-red-700">INMINENTE (Rojo)</span>
             </div>
           </div>
         </div>
@@ -356,9 +356,9 @@ export const ThreatsTable: React.FC<ThreatsTableProps> = ({
                   className="w-full text-xs px-2 py-2 rounded border border-slate-200 bg-white focus:outline-none focus:border-slate-400 cursor-pointer"
                   id="new-threat-qual"
                 >
-                  <option value="BAJO">BAJO</option>
-                  <option value="MEDIO">MEDIO</option>
-                  <option value="ALTO">ALTO</option>
+                  <option value="POSIBLE">POSIBLE</option>
+                  <option value="PROBABLE">PROBABLE</option>
+                  <option value="INMINENTE">INMINENTE</option>
                 </select>
               </div>
 
